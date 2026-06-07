@@ -1,0 +1,27 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+
+# Environment
+.env
+.env.*
+
+# Test
+coverage.out
+coverage.html
+
+# Build
+bin
+dist
+build
+
+# Docs
+README.md
+
+# OS
+.DS_Store
+Thumbs.db

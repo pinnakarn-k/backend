@@ -1,0 +1,24 @@
+# IDE
+.idea/
+.vscode/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Build
+bin/
+dist/
+build/
+
+# Test
+coverage.out
+coverage.html
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
