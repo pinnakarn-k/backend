@@ -1,13 +1,35 @@
-# Backend
+# K Backend
 
 Backend service built with Go and Fiber.
 
-## Requirements
+---
+
+# Prerequisites
+
+Required software:
 
 * Go 1.24+
 * Git
 
-## Environment
+Verify installation:
+
+```bash
+go version
+git --version
+```
+
+---
+
+# Getting Started
+
+## 1. Clone Repository
+
+```bash
+git clone <repository-url>
+cd backend
+```
+
+## 2. Create Environment File
 
 Create `.env` from `.env.example`
 
@@ -25,96 +47,104 @@ Environment values:
 | ENV     | local, dev, uat, prod |
 | PORT    | HTTP server port      |
 
-## Installation
+---
 
-Install dependencies:
+## 3. Install Dependencies
 
 ```bash
 go mod tidy
 ```
 
-## Run
+---
 
-Start application:
+## 4. Run Application
 
 ```bash
 go run ./cmd/app
 ```
 
-Default address:
+Application will start on:
 
 ```text
 http://localhost:8080
 ```
 
-## Health Check
+---
+
+# Verify Application
+
+Health check:
 
 ```http
 GET /healthz
-GET /readyz
 ```
-
-## Project Structure
-
-```text
-cmd/
-└── app/
-    └── main.go
-
-internal/
-├── app/
-├── apperror/
-├── config/
-├── health/
-├── logger/
-├── middleware/
-├── response/
-└── validator/
-```
-
-## Middleware
-
-### RequestID
-
-Generate request identifier for every request.
-
-Header:
-
-```http
-X-Request-Id
-```
-
-### Logger
-
-Structured JSON logging using slog.
-
-Logged fields:
-
-* requestId
-* method
-* path
-* status
-* latencyMs
-* ip
-* service
-* env
-
-### Recover
-
-Recover panic and return standard error response.
 
 Example:
 
+```bash
+curl http://localhost:8080/healthz
+```
+
+Expected response:
+
 ```json
 {
-  "code": "INTERNAL_SERVER_ERROR",
-  "message": "internal server error"
+  "data": {
+    "status": "ok"
+  }
 }
 ```
 
-## Response Contract
+---
 
-### Success
+# Development Workflow
+
+## Add New Module
+
+Example:
+
+```text
+internal/
+└── user/
+    ├── handler.go
+    ├── service.go
+    ├── repository.go
+    ├── route.go
+    ├── request.go
+    ├── response.go
+    └── error.go
+```
+
+Register routes in:
+
+```go
+internal/app/app.go
+```
+
+---
+
+## Request Validation
+
+Example DTO:
+
+```go
+type CreateUserRequest struct {
+	Email string `json:"email" validate:"required,email"`
+	Name  string `json:"name" validate:"required"`
+}
+```
+
+Validate request:
+
+```go
+if err := validator.Validate(req); err != nil {
+	return response.Error(c, err)
+}
+```
+
+---
+
+## Success Response
 
 ```json
 {
@@ -122,23 +152,15 @@ Example:
 }
 ```
 
-### Success With Pagination
+Example:
 
-```json
-{
-  "data": [],
-  "meta": {
-    "pagination": {
-      "page": 1,
-      "perPage": 20,
-      "total": 100,
-      "totalPages": 5
-    }
-  }
-}
+```go
+return response.Success(c, user)
 ```
 
-### Error
+---
+
+## Validation Error Response
 
 ```json
 {
@@ -153,25 +175,48 @@ Example:
 }
 ```
 
-## Validation
+---
 
-Validation is handled using:
+## Business Error Response
 
-```text
-github.com/go-playground/validator/v10
+```json
+{
+  "code": "USER_NOT_FOUND",
+  "message": "user not found"
+}
 ```
 
 Example:
 
 ```go
-if err := validator.Validate(req); err != nil {
-    return response.Error(c, err)
-}
+return response.Error(c, user.ErrUserNotFound)
 ```
 
-## Logging
+---
 
-Application logs are written to stdout in JSON format.
+# Middleware
+
+Registered globally:
+
+```go
+RequestID
+Logger
+Recover
+```
+
+Responsibilities:
+
+| Middleware | Purpose                               |
+| ---------- | ------------------------------------- |
+| RequestID  | Generate request identifier           |
+| Logger     | HTTP access logging                   |
+| Recover    | Recover panic and return 500 response |
+
+---
+
+# Logging
+
+Logs are written to stdout in JSON format.
 
 Example:
 
@@ -184,4 +229,23 @@ Example:
   "path": "/healthz",
   "status": 200
 }
+```
+
+---
+
+# Project Structure
+
+```text
+cmd/
+└── app/
+
+internal/
+├── app/
+├── apperror/
+├── config/
+├── health/
+├── logger/
+├── middleware/
+├── response/
+└── validator/
 ```
