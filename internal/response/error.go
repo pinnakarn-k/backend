@@ -8,39 +8,52 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type FieldError struct {
-	Field   string `json:"field"`
+type ErrorBody struct {
+	Code    string `json:"code"`
 	Message string `json:"message"`
 }
 
-type ErrorBody struct {
+type ValidationErrorBody struct {
 	Code    string       `json:"code"`
 	Message string       `json:"message"`
-	Errors  []FieldError `json:"errors,omitempty"`
+	Errors  []FieldError `json:"errors"`
+}
+
+type FieldError struct {
+	Field   string `json:"field"`
+	Message string `json:"message"`
 }
 
 func Error(c *fiber.Ctx, err error) error {
 	var appErr *apperror.Error
 
 	if errors.As(err, &appErr) {
-		return c.Status(appErr.StatusCode).JSON(ErrorBody{
-			Code:    appErr.Code,
-			Message: appErr.Message,
-			Errors:  toFieldErrors(appErr.Fields),
-		})
+		if len(appErr.Fields) > 0 {
+			return validationError(c, appErr)
+		}
+
+		return businessError(c, appErr)
 	}
 
-	return c.Status(apperror.ErrInternalServer.StatusCode).JSON(ErrorBody{
-		Code:    apperror.ErrInternalServer.Code,
-		Message: apperror.ErrInternalServer.Message,
+	return businessError(c, apperror.ErrInternalServer)
+}
+
+func businessError(c *fiber.Ctx, err *apperror.Error) error {
+	return c.Status(err.StatusCode).JSON(ErrorBody{
+		Code:    err.Code,
+		Message: err.Message,
+	})
+}
+
+func validationError(c *fiber.Ctx, err *apperror.Error) error {
+	return c.Status(err.StatusCode).JSON(ValidationErrorBody{
+		Code:    err.Code,
+		Message: err.Message,
+		Errors:  toFieldErrors(err.Fields),
 	})
 }
 
 func toFieldErrors(fields []apperror.FieldError) []FieldError {
-	if len(fields) == 0 {
-		return nil
-	}
-
 	result := make([]FieldError, 0, len(fields))
 
 	for _, field := range fields {
