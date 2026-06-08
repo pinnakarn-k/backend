@@ -21,18 +21,6 @@ var (
 		"forbidden",
 	)
 
-	ErrNotFound = New(
-		http.StatusNotFound,
-		"NOT_FOUND",
-		"not found",
-	)
-
-	ErrConflict = New(
-		http.StatusConflict,
-		"CONFLICT",
-		"conflict",
-	)
-
 	ErrInternalServer = New(
 		http.StatusInternalServerError,
 		"INTERNAL_SERVER_ERROR",

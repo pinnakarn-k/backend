@@ -2,7 +2,6 @@ package response
 
 import (
 	"errors"
-	"net/http"
 
 	"backend/internal/apperror"
 
@@ -31,14 +30,10 @@ func Error(c *fiber.Ctx, err error) error {
 		})
 	}
 
-	return c.Status(http.StatusInternalServerError).JSON(ErrorBody{
+	return c.Status(apperror.ErrInternalServer.StatusCode).JSON(ErrorBody{
 		Code:    apperror.ErrInternalServer.Code,
 		Message: apperror.ErrInternalServer.Message,
 	})
-}
-
-func InternalServerError(c *fiber.Ctx) error {
-	return Error(c, apperror.ErrInternalServer)
 }
 
 func toFieldErrors(fields []apperror.FieldError) []FieldError {
