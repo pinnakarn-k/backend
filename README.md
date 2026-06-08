@@ -98,6 +98,99 @@ Expected response:
 
 ---
 
+## Health Check
+
+### Liveness Probe
+
+Endpoint:
+
+```http
+GET /healthz
+```
+
+Purpose:
+
+```text
+Check whether the application process is alive.
+```
+
+This endpoint should not depend on external systems such as:
+
+* Database
+* Redis
+* External APIs
+
+Expected response:
+
+```json
+{
+  "data": {
+    "status": "ok"
+  }
+}
+```
+
+---
+
+### Readiness Probe
+
+Endpoint:
+
+```http
+GET /readyz
+```
+
+Purpose:
+
+```text
+Check whether the application is ready to receive traffic.
+```
+
+This endpoint may validate required dependencies such as:
+
+* Database
+* Redis
+* Elasticsearch
+* External Services
+
+Expected response:
+
+```json
+{
+  "data": {
+    "status": "ready"
+  }
+}
+```
+
+If a required dependency is unavailable:
+
+```json
+{
+  "code": "SERVICE_UNAVAILABLE",
+  "message": "service unavailable"
+}
+```
+
+---
+
+### Current Implementation
+
+At the moment:
+
+```text
+/healthz = process health check
+/readyz  = dummy readiness check
+```
+
+Future dependencies should be added to:
+
+```go
+health.Repository.Ready()
+```
+
+---
+
 # Development Reference
 
 ## Module Structure

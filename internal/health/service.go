@@ -1,7 +1,9 @@
 package health
 
+import "backend/internal/apperror"
+
 type Service interface {
-	Check() error
+	Ready() error
 }
 
 type service struct {
@@ -14,6 +16,10 @@ func NewService(repository Repository) Service {
 	}
 }
 
-func (s *service) Check() error {
-	return s.repository.Check()
+func (s *service) Ready() error {
+	if err := s.repository.Ready(); err != nil {
+		return apperror.ErrServiceUnavailable
+	}
+
+	return nil
 }
