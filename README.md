@@ -1,10 +1,8 @@
-# Backend
+# K Backend
 
 Backend service built with Go and Fiber.
 
----
-
-# Quick Start
+## Quick Start
 
 ```powershell
 Copy-Item .env.example .env
@@ -24,9 +22,7 @@ Health check:
 curl http://localhost:8080/healthz
 ```
 
----
-
-# Prerequisites
+## Prerequisites
 
 Required software:
 
@@ -40,28 +36,26 @@ go version
 git --version
 ```
 
----
+## Getting Started
 
-# Getting Started
-
-## 1. Clone Repository
+### 1. Clone Repository
 
 ```powershell
 git clone <repository-url>
 cd backend
 ```
 
-## 2. Create Environment File
+### 2. Create Environment File
 
 Create `.env` from `.env.example`
 
-### PowerShell
+#### PowerShell
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-### Command Prompt
+#### Command Prompt
 
 ```cmd
 copy .env.example .env
@@ -70,7 +64,7 @@ copy .env.example .env
 Example:
 
 ```env
-SERVICE=backend
+SERVICE=k-backend
 ENV=local
 PORT=8080
 ```
@@ -83,21 +77,19 @@ Environment values:
 | ENV     | local, dev, uat, prod |
 | PORT    | HTTP server port      |
 
-## 3. Install Dependencies
+### 3. Install Dependencies
 
 ```powershell
 go mod tidy
 ```
 
-## 4. Run Application
+### 4. Run Application
 
 ```powershell
 go run ./cmd/app
 ```
 
----
-
-# Verify Application
+## Verify Application
 
 Health check:
 
@@ -122,11 +114,9 @@ Expected response:
 }
 ```
 
----
+## Development Workflow
 
-# Development Workflow
-
-## Add New Module
+### Add New Module
 
 Example module structure:
 
@@ -147,9 +137,7 @@ Register routes in:
 internal/app/app.go
 ```
 
----
-
-## Request Validation
+### Request Validation
 
 DTO example:
 
@@ -168,9 +156,7 @@ if err := validator.Validate(req); err != nil {
 }
 ```
 
----
-
-## Success Response
+### Success Response
 
 ```json
 {
@@ -184,9 +170,7 @@ Example:
 return response.Success(c, user)
 ```
 
----
-
-## Validation Error Response
+### Validation Error Response
 
 ```json
 {
@@ -201,9 +185,7 @@ return response.Success(c, user)
 }
 ```
 
----
-
-## Business Error Response
+### Business Error Response
 
 ```json
 {
@@ -218,9 +200,7 @@ Example:
 return response.Error(c, user.ErrUserNotFound)
 ```
 
----
-
-# Middleware
+## Middleware
 
 Registered globally:
 
@@ -236,9 +216,7 @@ Recover
 | Logger     | HTTP access logging                              |
 | Recover    | Recover panic and return standard error response |
 
----
-
-# Logging
+## Logging
 
 Logs are written to stdout in JSON format.
 
@@ -246,7 +224,7 @@ Example:
 
 ```json
 {
-  "service": "sbackend",
+  "service": "k-backend",
   "env": "local",
   "requestId": "123",
   "method": "GET",
@@ -256,9 +234,7 @@ Example:
 }
 ```
 
----
-
-# Project Structure
+## Project Structure
 
 ```text
 cmd/
