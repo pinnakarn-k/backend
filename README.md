@@ -2,26 +2,6 @@
 
 Backend service built with Go and Fiber.
 
-## Quick Start
-
-```powershell
-Copy-Item .env.example .env
-go mod tidy
-go run ./cmd/app
-```
-
-Application will start at:
-
-```text
-http://localhost:8080
-```
-
-Health check:
-
-```powershell
-curl http://localhost:8080/healthz
-```
-
 ## Prerequisites
 
 Required software:
@@ -31,34 +11,42 @@ Required software:
 
 Verify installation:
 
-```powershell
+```bash
 go version
 git --version
 ```
 
+## Quick Start
+
+Install dependencies:
+
+```bash
+go mod tidy
+```
+
+Run application:
+
+```bash
+go run ./cmd/app
+```
+
+Application will start at:
+
+```text
+http://localhost:8080
+```
+
 ## Getting Started
 
-### 1. Clone Repository
+### Environment
 
-```powershell
-git clone <repository-url>
-cd backend
-```
+Supported environments:
 
-### 2. Create Environment File
-
-Create `.env` from `.env.example`
-
-#### PowerShell
-
-```powershell
-Copy-Item .env.example .env
-```
-
-#### Command Prompt
-
-```cmd
-copy .env.example .env
+```text
+local
+dev
+uat
+prod
 ```
 
 Example:
@@ -71,27 +59,21 @@ PORT=8080
 
 Environment values:
 
-| Key     | Description           |
-| ------- | --------------------- |
-| SERVICE | Service name          |
-| ENV     | local, dev, uat, prod |
-| PORT    | HTTP server port      |
+| Key     | Description         |
+| ------- | ------------------- |
+| SERVICE | Service name        |
+| ENV     | Runtime environment |
+| PORT    | HTTP server port    |
 
-### 3. Install Dependencies
+### Run Application
 
-```powershell
-go mod tidy
-```
-
-### 4. Run Application
-
-```powershell
+```bash
 go run ./cmd/app
 ```
 
 ## Verify Application
 
-Health check:
+Health check endpoints:
 
 ```http
 GET /healthz
@@ -100,7 +82,7 @@ GET /readyz
 
 Example:
 
-```powershell
+```bash
 curl http://localhost:8080/healthz
 ```
 
@@ -114,11 +96,13 @@ Expected response:
 }
 ```
 
-## Development Workflow
+---
 
-### Add New Module
+# Development Reference
 
-Example module structure:
+## Module Structure
+
+Every business module should follow this structure:
 
 ```text
 internal/
@@ -131,13 +115,20 @@ internal/
     └── error.go
 ```
 
-Register routes in:
+Responsibilities:
 
-```go
-internal/app/app.go
-```
+| File          | Responsibility         |
+| ------------- | ---------------------- |
+| handler.go    | HTTP layer             |
+| service.go    | Business logic         |
+| repository.go | Data access            |
+| route.go      | Route registration     |
+| dto.go        | Request / Response DTO |
+| error.go      | Business errors        |
 
-### Request Validation
+---
+
+## Request Validation
 
 DTO example:
 
@@ -156,21 +147,7 @@ if err := validator.Validate(req); err != nil {
 }
 ```
 
-### Success Response
-
-```json
-{
-  "data": {}
-}
-```
-
-Example:
-
-```go
-return response.Success(c, user)
-```
-
-### Validation Error Response
+Validation response:
 
 ```json
 {
@@ -185,7 +162,109 @@ return response.Success(c, user)
 }
 ```
 
-### Business Error Response
+---
+
+## Success Response
+
+Response:
+
+```json
+{
+  "data": {
+    "id": 1,
+    "name": "John"
+  }
+}
+```
+
+Usage:
+
+```go
+return response.Success(c, user)
+```
+
+---
+
+## Success Response With Pagination
+
+Response:
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "John"
+    }
+  ],
+  "meta": {
+    "pagination": {
+      "page": 1,
+      "perPage": 20,
+      "total": 100,
+      "totalPages": 5
+    }
+  }
+}
+```
+
+Usage:
+
+```go
+return response.SuccessWithPagination(
+	c,
+	users,
+	response.Pagination{
+		Page:       1,
+		PerPage:    20,
+		Total:      100,
+		TotalPages: 5,
+	},
+)
+```
+
+---
+
+## Business Error
+
+Create business errors inside the module.
+
+Example:
+
+```go
+package user
+
+import (
+	"net/http"
+
+	"backend/internal/apperror"
+)
+
+var (
+	ErrUserNotFound = apperror.New(
+		http.StatusNotFound,
+		"USER_NOT_FOUND",
+		"user not found",
+	)
+
+	ErrUserAlreadyExists = apperror.New(
+		http.StatusConflict,
+		"USER_ALREADY_EXISTS",
+		"user already exists",
+	)
+)
+```
+
+Usage:
+
+```go
+return response.Error(
+	c,
+	user.ErrUserNotFound,
+)
+```
+
+Response:
 
 ```json
 {
@@ -194,11 +273,30 @@ return response.Success(c, user)
 }
 ```
 
-Example:
+---
+
+## Common Errors
+
+Available common errors:
 
 ```go
-return response.Error(c, user.ErrUserNotFound)
+apperror.ErrBadRequest
+apperror.ErrUnauthorized
+apperror.ErrForbidden
+apperror.ErrInternalServer
+apperror.ErrServiceUnavailable
 ```
+
+Usage:
+
+```go
+return response.Error(
+	c,
+	apperror.ErrUnauthorized,
+)
+```
+
+---
 
 ## Middleware
 
@@ -210,11 +308,47 @@ Logger
 Recover
 ```
 
-| Middleware | Responsibility                                   |
-| ---------- | ------------------------------------------------ |
-| RequestID  | Generate request identifier                      |
-| Logger     | HTTP access logging                              |
-| Recover    | Recover panic and return standard error response |
+### RequestID
+
+Generate a unique request identifier for every request.
+
+Header:
+
+```http
+X-Request-Id
+```
+
+### Logger
+
+Log every HTTP request.
+
+Logged fields:
+
+```text
+requestId
+method
+path
+status
+latencyMs
+ip
+service
+env
+```
+
+### Recover
+
+Recover panic and return a standard error response.
+
+Response:
+
+```json
+{
+  "code": "INTERNAL_SERVER_ERROR",
+  "message": "internal server error"
+}
+```
+
+---
 
 ## Logging
 
@@ -233,6 +367,8 @@ Example:
   "latencyMs": 5
 }
 ```
+
+---
 
 ## Project Structure
 
