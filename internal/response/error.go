@@ -9,15 +9,15 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+type FieldError struct {
+	Field   string `json:"field"`
+	Message string `json:"message"`
+}
+
 type ErrorBody struct {
 	Code    string       `json:"code"`
 	Message string       `json:"message"`
 	Errors  []FieldError `json:"errors,omitempty"`
-}
-
-type FieldError struct {
-	Field   string `json:"field"`
-	Message string `json:"message"`
 }
 
 func Error(c *fiber.Ctx, err error) error {
@@ -27,7 +27,7 @@ func Error(c *fiber.Ctx, err error) error {
 		return c.Status(appErr.StatusCode).JSON(ErrorBody{
 			Code:    appErr.Code,
 			Message: appErr.Message,
-			Errors:  toResponseFieldErrors(appErr.Fields),
+			Errors:  toFieldErrors(appErr.Fields),
 		})
 	}
 
@@ -37,7 +37,11 @@ func Error(c *fiber.Ctx, err error) error {
 	})
 }
 
-func toResponseFieldErrors(fields []apperror.FieldError) []FieldError {
+func InternalServerError(c *fiber.Ctx) error {
+	return Error(c, apperror.ErrInternalServer)
+}
+
+func toFieldErrors(fields []apperror.FieldError) []FieldError {
 	if len(fields) == 0 {
 		return nil
 	}

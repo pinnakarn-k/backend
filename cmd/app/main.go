@@ -15,7 +15,7 @@ func main() {
 
 	logger := logger.New()
 
-	fiberApp := app.New()
+	fiberApp := app.New(logger)
 
 	go func() {
 		if err := fiberApp.Listen(cfg.ListenAddress()); err != nil {
