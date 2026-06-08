@@ -32,13 +32,13 @@ func Error(c *fiber.Ctx, err error) error {
 			return validationError(c, appErr)
 		}
 
-		return businessError(c, appErr)
+		return appError(c, appErr)
 	}
 
-	return businessError(c, apperror.ErrInternalServer)
+	return appError(c, apperror.ErrInternalServer)
 }
 
-func businessError(c *fiber.Ctx, err *apperror.Error) error {
+func appError(c *fiber.Ctx, err *apperror.Error) error {
 	return c.Status(err.StatusCode).JSON(ErrorBody{
 		Code:    err.Code,
 		Message: err.Message,
