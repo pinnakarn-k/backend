@@ -1,4 +1,4 @@
-# K Backend
+# Backend
 
 Backend service built with Go and Fiber.
 
@@ -22,6 +22,12 @@ Install dependencies:
 
 ```bash
 go mod tidy
+```
+
+Verify build:
+
+```bash
+go build ./...
 ```
 
 Run application:
@@ -62,7 +68,7 @@ copy .env.example .env
 Example:
 
 ```env
-SERVICE=k-backend
+SERVICE=backend
 ENV=local
 PORT=8080
 ```
@@ -79,6 +85,12 @@ Environment values:
 
 ```bash
 go mod tidy
+```
+
+### Verify Build
+
+```bash
+go build ./...
 ```
 
 ### Run Application
@@ -100,9 +112,10 @@ Example:
 
 ```bash
 curl http://localhost:8080/healthz
+curl http://localhost:8080/readyz
 ```
 
-Expected response:
+Expected responses:
 
 ```json
 {
@@ -112,7 +125,13 @@ Expected response:
 }
 ```
 
----
+```json
+{
+  "data": {
+    "status": "ready"
+  }
+}
+```
 
 ## Health Check
 
@@ -136,7 +155,7 @@ This endpoint should not depend on external systems such as:
 * Redis
 * External APIs
 
-Expected response:
+Response:
 
 ```json
 {
@@ -145,8 +164,6 @@ Expected response:
   }
 }
 ```
-
----
 
 ### Readiness Probe
 
@@ -169,7 +186,7 @@ This endpoint may validate required dependencies such as:
 * Elasticsearch
 * External Services
 
-Expected response:
+Response:
 
 ```json
 {
@@ -188,18 +205,16 @@ If a required dependency is unavailable:
 }
 ```
 
----
-
 ### Current Implementation
 
-At the moment:
+Current behavior:
 
 ```text
 /healthz = process health check
 /readyz  = dummy readiness check
 ```
 
-Future dependencies should be added to:
+Future dependency checks should be implemented in:
 
 ```go
 health.Repository.Ready()
@@ -235,8 +250,6 @@ Responsibilities:
 | dto.go        | Request / Response DTO |
 | error.go      | Business errors        |
 
----
-
 ## Request Validation
 
 DTO example:
@@ -271,8 +284,6 @@ Validation response:
 }
 ```
 
----
-
 ## Success Response
 
 Response:
@@ -291,8 +302,6 @@ Usage:
 ```go
 return response.Success(c, user)
 ```
-
----
 
 ## Success Response With Pagination
 
@@ -331,8 +340,6 @@ return response.SuccessWithPagination(
 	},
 )
 ```
-
----
 
 ## Business Error
 
@@ -382,8 +389,6 @@ Response:
 }
 ```
 
----
-
 ## Common Errors
 
 Available common errors:
@@ -404,8 +409,6 @@ return response.Error(
 	apperror.ErrUnauthorized,
 )
 ```
-
----
 
 ## Middleware
 
@@ -457,8 +460,6 @@ Response:
 }
 ```
 
----
-
 ## Logging
 
 Logs are written to stdout in JSON format.
@@ -467,7 +468,7 @@ Example:
 
 ```json
 {
-  "service": "k-backend",
+  "service": "backend",
   "env": "local",
   "requestId": "123",
   "method": "GET",
@@ -476,8 +477,6 @@ Example:
   "latencyMs": 5
 }
 ```
-
----
 
 ## Project Structure
 
@@ -494,5 +493,6 @@ internal/
 ├── logger/
 ├── middleware/
 ├── response/
-└── validator/
+├── validator/
+└── ...
 ```
