@@ -1,4 +1,4 @@
-# Backend
+# K Backend
 
 Backend service built with Go and Fiber.
 
@@ -149,7 +149,7 @@ Purpose:
 Check whether the application process is alive.
 ```
 
-This endpoint should not depend on external systems such as:
+This endpoint should not depend on:
 
 * Database
 * Redis
@@ -179,7 +179,7 @@ Purpose:
 Check whether the application is ready to receive traffic.
 ```
 
-This endpoint may validate required dependencies such as:
+This endpoint may validate:
 
 * Database
 * Redis
@@ -220,11 +220,43 @@ Future dependency checks should be implemented in:
 health.Repository.Ready()
 ```
 
----
+## Development Reference
 
-# Development Reference
+### Architecture Flow
 
-## Module Structure
+```text
+HTTP Request
+    ↓
+Middleware
+    ↓
+Handler
+    ↓
+Service
+    ↓
+Repository
+    ↓
+Database / External Service
+    ↓
+Response
+```
+
+Layer responsibilities:
+
+| Layer      | Responsibility                 |
+| ---------- | ------------------------------ |
+| Handler    | HTTP request/response handling |
+| Service    | Business logic                 |
+| Repository | Data access                    |
+| Response   | API response contract          |
+
+Guidelines:
+
+* Handler should not contain business logic.
+* Service should not contain HTTP-specific logic.
+* Repository should not contain business logic.
+* Response formatting should use the shared response package.
+
+### Module Structure
 
 Every business module should follow this structure:
 
@@ -250,7 +282,31 @@ Responsibilities:
 | dto.go        | Request / Response DTO |
 | error.go      | Business errors        |
 
-## Request Validation
+### DTO
+
+DTO is used for request and response models.
+
+Example:
+
+```go
+type CreateUserRequest struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+type UserResponse struct {
+	ID    int    `json:"id"`
+	Email string `json:"email"`
+}
+```
+
+Guidelines:
+
+* Request DTO should contain validation tags.
+* Response DTO should be returned to clients.
+* Database models should not be exposed directly through APIs.
+* Request and Response DTO should be defined in dto.go.
+
+### Request Validation
 
 DTO example:
 
@@ -284,7 +340,7 @@ Validation response:
 }
 ```
 
-## Success Response
+### Success Response
 
 Response:
 
@@ -303,7 +359,7 @@ Usage:
 return response.Success(c, user)
 ```
 
-## Success Response With Pagination
+### Success Response With Pagination
 
 Response:
 
@@ -341,7 +397,7 @@ return response.SuccessWithPagination(
 )
 ```
 
-## Business Error
+### Business Error
 
 Create business errors inside the module.
 
@@ -389,7 +445,7 @@ Response:
 }
 ```
 
-## Common Errors
+### Common Errors
 
 Available common errors:
 
@@ -410,7 +466,7 @@ return response.Error(
 )
 ```
 
-## Middleware
+### Middleware
 
 Registered globally:
 
@@ -420,7 +476,7 @@ Logger
 Recover
 ```
 
-### RequestID
+#### RequestID
 
 Generate a unique request identifier for every request.
 
@@ -430,7 +486,7 @@ Header:
 X-Request-Id
 ```
 
-### Logger
+#### Logger
 
 Log every HTTP request.
 
@@ -447,7 +503,7 @@ service
 env
 ```
 
-### Recover
+#### Recover
 
 Recover panic and return a standard error response.
 
@@ -460,7 +516,7 @@ Response:
 }
 ```
 
-## Logging
+### Logging
 
 Logs are written to stdout in JSON format.
 
