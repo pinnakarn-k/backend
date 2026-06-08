@@ -1,6 +1,28 @@
-# K Backend
+# Backend
 
 Backend service built with Go and Fiber.
+
+---
+
+# Quick Start
+
+```powershell
+Copy-Item .env.example .env
+go mod tidy
+go run ./cmd/app
+```
+
+Application will start at:
+
+```text
+http://localhost:8080
+```
+
+Health check:
+
+```powershell
+curl http://localhost:8080/healthz
+```
 
 ---
 
@@ -13,7 +35,7 @@ Required software:
 
 Verify installation:
 
-```bash
+```powershell
 go version
 git --version
 ```
@@ -24,7 +46,7 @@ git --version
 
 ## 1. Clone Repository
 
-```bash
+```powershell
 git clone <repository-url>
 cd backend
 ```
@@ -33,8 +55,22 @@ cd backend
 
 Create `.env` from `.env.example`
 
+### PowerShell
+
+```powershell
+Copy-Item .env.example .env
+```
+
+### Command Prompt
+
+```cmd
+copy .env.example .env
+```
+
+Example:
+
 ```env
-SERVICE=k-backend
+SERVICE=backend
 ENV=local
 PORT=8080
 ```
@@ -47,26 +83,16 @@ Environment values:
 | ENV     | local, dev, uat, prod |
 | PORT    | HTTP server port      |
 
----
-
 ## 3. Install Dependencies
 
-```bash
+```powershell
 go mod tidy
 ```
 
----
-
 ## 4. Run Application
 
-```bash
+```powershell
 go run ./cmd/app
-```
-
-Application will start on:
-
-```text
-http://localhost:8080
 ```
 
 ---
@@ -77,11 +103,12 @@ Health check:
 
 ```http
 GET /healthz
+GET /readyz
 ```
 
 Example:
 
-```bash
+```powershell
 curl http://localhost:8080/healthz
 ```
 
@@ -101,7 +128,7 @@ Expected response:
 
 ## Add New Module
 
-Example:
+Example module structure:
 
 ```text
 internal/
@@ -110,8 +137,7 @@ internal/
     ├── service.go
     ├── repository.go
     ├── route.go
-    ├── request.go
-    ├── response.go
+    ├── dto.go
     └── error.go
 ```
 
@@ -125,7 +151,7 @@ internal/app/app.go
 
 ## Request Validation
 
-Example DTO:
+DTO example:
 
 ```go
 type CreateUserRequest struct {
@@ -198,19 +224,17 @@ return response.Error(c, user.ErrUserNotFound)
 
 Registered globally:
 
-```go
+```text
 RequestID
 Logger
 Recover
 ```
 
-Responsibilities:
-
-| Middleware | Purpose                               |
-| ---------- | ------------------------------------- |
-| RequestID  | Generate request identifier           |
-| Logger     | HTTP access logging                   |
-| Recover    | Recover panic and return 500 response |
+| Middleware | Responsibility                                   |
+| ---------- | ------------------------------------------------ |
+| RequestID  | Generate request identifier                      |
+| Logger     | HTTP access logging                              |
+| Recover    | Recover panic and return standard error response |
 
 ---
 
@@ -222,12 +246,13 @@ Example:
 
 ```json
 {
-  "service": "k-backend",
+  "service": "sbackend",
   "env": "local",
   "requestId": "123",
   "method": "GET",
   "path": "/healthz",
-  "status": 200
+  "status": 200,
+  "latencyMs": 5
 }
 ```
 
@@ -238,6 +263,7 @@ Example:
 ```text
 cmd/
 └── app/
+    └── main.go
 
 internal/
 ├── app/
