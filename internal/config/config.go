@@ -15,12 +15,30 @@ type Config struct {
 }
 
 func Load() Config {
-	_ = godotenv.Load()
+	loadDotEnv()
 
-	return Config{
+	cfg := Config{
 		Service: env("SERVICE", "backend"),
 		Env:     env("ENV", "local"),
 		Port:    envInt("PORT", 8080),
+	}
+
+	cfg.validate()
+
+	return cfg
+}
+
+func loadDotEnv() {
+	_ = godotenv.Load()
+}
+
+func (c Config) validate() {
+	if c.Service == "" {
+		panic("SERVICE is required")
+	}
+
+	if c.Port <= 0 {
+		panic("PORT must be greater than 0")
 	}
 }
 
