@@ -38,15 +38,25 @@ http://localhost:8080
 
 ## Getting Started
 
-### Environment
+### Clone Repository
 
-Supported environments:
+```bash
+git clone <repository-url>
+cd backend
+```
 
-```text
-local
-dev
-uat
-prod
+### Create Environment File
+
+PowerShell
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Command Prompt
+
+```cmd
+copy .env.example .env
 ```
 
 Example:
@@ -59,11 +69,17 @@ PORT=8080
 
 Environment values:
 
-| Key     | Description         |
-| ------- | ------------------- |
-| SERVICE | Service name        |
-| ENV     | Runtime environment |
-| PORT    | HTTP server port    |
+| Key     | Description                                 |
+| ------- | ------------------------------------------- |
+| SERVICE | Service name                                |
+| ENV     | Runtime environment (local, dev, uat, prod) |
+| PORT    | HTTP server port                            |
+
+### Install Dependencies
+
+```bash
+go mod tidy
+```
 
 ### Run Application
 
