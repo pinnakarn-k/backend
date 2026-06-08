@@ -9,14 +9,18 @@ import (
 )
 
 type Config struct {
-	Port int
+	Service string
+	Env     string
+	Port    int
 }
 
 func Load() Config {
 	_ = godotenv.Load()
 
 	return Config{
-		Port: envInt("PORT", 8080),
+		Service: env("SERVICE", "backend"),
+		Env:     env("ENV", "local"),
+		Port:    envInt("PORT", 8080),
 	}
 }
 
@@ -24,16 +28,23 @@ func (c Config) ListenAddress() string {
 	return fmt.Sprintf(":%d", c.Port)
 }
 
+func env(key string, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+
+	return def
+}
+
 func envInt(key string, def int) int {
 	v := os.Getenv(key)
-
 	if v == "" {
 		return def
 	}
 
 	i, err := strconv.Atoi(v)
 	if err != nil {
-		panic(key + " must be integer")
+		panic(fmt.Sprintf("%s must be int", key))
 	}
 
 	return i

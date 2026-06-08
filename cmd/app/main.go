@@ -13,7 +13,10 @@ import (
 func main() {
 	cfg := config.Load()
 
-	logger := logger.New()
+	logger := logger.New(
+		cfg.Service,
+		cfg.Env,
+	)
 
 	fiberApp := app.New(logger)
 
