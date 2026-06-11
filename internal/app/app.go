@@ -7,9 +7,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/redis/go-redis/v9"
 )
 
-func New(log *slog.Logger) *fiber.App {
+func New(log *slog.Logger, redisClient *redis.Client) *fiber.App {
 	fiberApp := fiber.New()
 
 	fiberApp.Use(cors.New(cors.Config{
@@ -18,6 +19,7 @@ func New(log *slog.Logger) *fiber.App {
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization, X-Request-Id",
 	}))
 
+	fiberApp.Use(middleware.RequestContext())
 	fiberApp.Use(middleware.RequestID())
 	fiberApp.Use(middleware.Logger(log))
 	fiberApp.Use(middleware.Recover(log))

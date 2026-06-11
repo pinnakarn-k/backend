@@ -466,6 +466,26 @@ return response.Error(
 )
 ```
 
+### API Versioning Strategy
+
+API versioning is not implemented yet.
+
+If public API contracts are introduced, versioning will be applied using URL path:
+
+```text
+/api/v1/*
+/api/v2/*
+```
+
+### RestAPI
+```text
+GET /api/v1/hd/master
+POST /api/v1/hd/search
+GET /api/v1/hd/documents/:documentId
+POST /api/v1/hd/documents/:documentId/download
+POST /api/v1/hd/send-email
+```
+
 ### Middleware
 
 Registered globally:

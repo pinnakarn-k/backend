@@ -1,9 +1,13 @@
 package health
 
-import "backend/internal/apperror"
+import (
+	"backend/internal/apperror"
+	"backend/internal/requestcontext"
+	"fmt"
+)
 
 type Service interface {
-	Ready() error
+	Ready(reqCtx requestcontext.RequestContext) error
 }
 
 type service struct {
@@ -16,7 +20,9 @@ func NewService(repository Repository) Service {
 	}
 }
 
-func (s *service) Ready() error {
+func (s *service) Ready(reqCtx requestcontext.RequestContext) error {
+	fmt.Printf("%+v\n", reqCtx)
+
 	if err := s.repository.Ready(); err != nil {
 		return apperror.ErrServiceUnavailable
 	}

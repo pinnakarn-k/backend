@@ -12,6 +12,20 @@ type Config struct {
 	Service string
 	Env     string
 	Port    int
+
+	// SQL Server
+	DBHost     string
+	DBPort     int
+	DBName     string
+	DBUser     string
+	DBPassword string
+
+	// Redis
+	RedisEnabled  bool
+	RedisHost     string
+	RedisPort     int
+	RedisPassword string
+	RedisDB       int
 }
 
 func Load() Config {
@@ -21,6 +35,18 @@ func Load() Config {
 		Service: env("SERVICE", "backend"),
 		Env:     env("ENV", "local"),
 		Port:    envInt("PORT", 8080),
+
+		DBHost:     env("DB_HOST", ""),
+		DBPort:     envInt("DB_PORT", 1433),
+		DBName:     env("DB_NAME", ""),
+		DBUser:     env("DB_USER", ""),
+		DBPassword: env("DB_PASSWORD", ""),
+
+		RedisEnabled:  envBool("REDIS_ENABLED", false),
+		RedisHost:     env("REDIS_HOST", "localhost"),
+		RedisPort:     envInt("REDIS_PORT", 6379),
+		RedisPassword: env("REDIS_PASSWORD", ""),
+		RedisDB:       envInt("REDIS_DB", 0),
 	}
 
 	cfg.validate()
@@ -66,4 +92,18 @@ func envInt(key string, def int) int {
 	}
 
 	return i
+}
+
+func envBool(key string, def bool) bool {
+	v := os.Getenv(key)
+	if v == "" {
+		return def
+	}
+
+	b, err := strconv.ParseBool(v)
+	if err != nil {
+		panic(fmt.Sprintf("%s must be bool", key))
+	}
+
+	return b
 }

@@ -8,6 +8,7 @@ import (
 	"backend/internal/app"
 	"backend/internal/config"
 	"backend/internal/logger"
+	redisinfra "backend/internal/redis"
 )
 
 func main() {
@@ -18,7 +19,34 @@ func main() {
 		cfg.Env,
 	)
 
-	fiberApp := app.New(logger)
+	redisClient, err := redisinfra.New(
+		redisinfra.Config{
+			Enabled:  cfg.RedisEnabled,
+			Host:     cfg.RedisHost,
+			Port:     cfg.RedisPort,
+			Password: cfg.RedisPassword,
+			DB:       cfg.RedisDB,
+		},
+	)
+	if err != nil {
+		logger.Error(
+			"failed to connect redis",
+			"error", err,
+		)
+
+		os.Exit(1)
+	}
+
+	defer func() {
+		if err := redisClient.Close(); err != nil {
+			logger.Error(
+				"failed to close redis",
+				"error", err,
+			)
+		}
+	}()
+
+	fiberApp := app.New(logger, redisClient)
 
 	go func() {
 		if err := fiberApp.Listen(cfg.ListenAddress()); err != nil {
