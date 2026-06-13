@@ -3,6 +3,7 @@ package app
 import (
 	"backend/internal/health"
 	"backend/internal/middleware"
+	"backend/internal/transaction"
 	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
@@ -27,8 +28,12 @@ func New(log *slog.Logger, redisClient *redis.Client) *fiber.App {
 	healthRepo := health.NewRepository()
 	healthService := health.NewService(healthRepo)
 	healthHandler := health.NewHandler(healthService)
-
 	health.RegisterRoutes(fiberApp, healthHandler)
+
+	transactionRepo := transaction.NewRepo()
+	transactionService := transaction.NewService(transactionRepo)
+	transactionHandler := transaction.NewHandler(transactionService)
+	transaction.RegisterRoutes(fiberApp, transactionHandler)
 
 	return fiberApp
 }
