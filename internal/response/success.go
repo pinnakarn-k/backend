@@ -1,6 +1,10 @@
 package response
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"backend/internal/pagination"
+
+	"github.com/gofiber/fiber/v2"
+)
 
 type SuccessBody struct {
 	Data any   `json:"data"`
@@ -8,7 +12,7 @@ type SuccessBody struct {
 }
 
 type Meta struct {
-	Pagination *Pagination `json:"pagination,omitempty"`
+	Pagination *pagination.Pagination `json:"pagination,omitempty"`
 }
 
 type Pagination struct {
@@ -27,12 +31,12 @@ func Success(c *fiber.Ctx, data any) error {
 func SuccessWithPagination(
 	c *fiber.Ctx,
 	data any,
-	pagination Pagination,
+	p pagination.Pagination,
 ) error {
 	return c.JSON(SuccessBody{
 		Data: data,
 		Meta: &Meta{
-			Pagination: &pagination,
+			Pagination: &p,
 		},
 	})
 }

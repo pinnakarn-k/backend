@@ -5,7 +5,7 @@ import (
 )
 
 type Repository interface {
-	Search(ctx context.Context, req SearchRequest) (SearchResult, error)
+	Search(ctx context.Context, req SearchRequest) (SearchRepoResult, error)
 }
 
 type repository struct {
@@ -21,7 +21,7 @@ func NewRepo() Repository {
 func (r *repository) Search(
 	ctx context.Context,
 	req SearchRequest,
-) (SearchResult, error) {
+) (SearchRepoResult, error) {
 	items := []TransactionItem{
 		{
 			DataDT:      "2026-06-13",
@@ -41,11 +41,8 @@ func (r *repository) Search(
 		},
 	}
 
-	return SearchResult{
-		Items:      items,
-		Page:       1,
-		PerPage:    20,
-		Total:      2,
-		TotalPages: 1,
+	return SearchRepoResult{
+		Items: items,
+		Total: 2,
 	}, nil
 }

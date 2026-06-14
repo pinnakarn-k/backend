@@ -1,38 +1,40 @@
 package pagination
 
-const (
-	DefaultLimit = 20
-	MaxLimit     = 100
-)
+import "math"
+
+type Pagination struct {
+	Page       int `json:"page"`
+	PerPage    int `json:"perPage"`
+	Total      int `json:"total"`
+	TotalPages int `json:"totalPages"`
+}
 
 func NormalizeLimit(limit int) int {
 	if limit <= 0 {
-		return DefaultLimit
+		return 20
 	}
-
-	if limit > MaxLimit {
-		return MaxLimit
+	if limit > 100 {
+		return 100
 	}
-
 	return limit
 }
 
-func buildPagination(
-	offset int,
-	limit int,
-	total int,
-) (int, int) {
-	page := 1
-
-	if limit > 0 {
-		page = (offset / limit) + 1
+func New(page, perPage, total int) Pagination {
+	if page <= 0 {
+		page = 1
 	}
+
+	perPage = NormalizeLimit(perPage)
 
 	totalPages := 0
-
-	if total > 0 && limit > 0 {
-		totalPages = (total + limit - 1) / limit
+	if total > 0 {
+		totalPages = int(math.Ceil(float64(total) / float64(perPage)))
 	}
 
-	return page, totalPages
+	return Pagination{
+		Page:       page,
+		PerPage:    perPage,
+		Total:      total,
+		TotalPages: totalPages,
+	}
 }

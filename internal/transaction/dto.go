@@ -1,5 +1,7 @@
 package transaction
 
+import "backend/internal/pagination"
+
 type SearchRequest struct {
 	CustomerCode string `json:"customer_code" validate:"required"`
 	AccountNo    string `json:"account_no" validate:"required"`
@@ -22,10 +24,12 @@ type TransactionItem struct {
 	Amount      string `json:"amount"`
 }
 
+type SearchRepoResult struct {
+	Items []TransactionItem
+	Total int
+}
+
 type SearchResult struct {
 	Items      []TransactionItem
-	Total      int
-	Page       int
-	PerPage    int
-	TotalPages int
+	Pagination pagination.Pagination
 }

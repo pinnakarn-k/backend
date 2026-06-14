@@ -39,12 +39,7 @@ func (h *Handler) Search(c *fiber.Ctx) error {
 	return response.SuccessWithPagination(
 		c,
 		result.Items,
-		response.Pagination{
-			Page:       result.Page,
-			PerPage:    result.PerPage,
-			Total:      result.Total,
-			TotalPages: result.TotalPages,
-		},
+		result.Pagination,
 	)
 }
 
