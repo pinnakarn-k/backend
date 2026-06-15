@@ -27,6 +27,155 @@ log error กลาง + response.Error
 อันนี้ product-grade แบบง่ายแล้วครับ.
 ```
 
+```text
+ใช่ครับ 🎯
+
+จริง ๆ นี่คือแนวที่ Go backend ส่วนใหญ่ใช้กันเลย
+
+repo
+↓ return err
+
+service
+↓ return err
+
+handler
+↓ return err
+
+Fiber ErrorHandler
+↓
+log
+↓
+response json
+
+ตัวอย่างจริง
+
+Repo
+func (r *repo) Search(...) error {
+
+	_, err := r.db.QueryContext(...)
+
+	if err != nil {
+		return fmt.Errorf(
+			"query transaction: %w",
+			err,
+		)
+	}
+
+	return nil
+}
+Service
+func (s *service) Search(...) error {
+
+	err := s.repo.Search(...)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+หรือ
+
+if errors.Is(err, sql.ErrNoRows) {
+	return ErrTransactionNotFound
+}
+Handler
+func (h *Handler) Search(
+	c *fiber.Ctx,
+) error {
+
+	var req SearchRequest
+
+	...
+
+	result, err := h.service.Search(
+		c.UserContext(),
+		req,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return response.Success(
+		c,
+		result,
+	)
+}
+ErrorHandler กลาง
+func ErrorHandler(...) fiber.ErrorHandler {
+
+	return func(
+		c *fiber.Ctx,
+		err error,
+	) error {
+
+		log.Error(...)
+
+		return response.Error(
+			c,
+			err,
+		)
+	}
+}
+
+ข้อดีคือ
+
+คุณไม่ต้องเขียน
+
+if err != nil {
+	log.Error(...)
+	return response.Error(...)
+}
+
+ทุก handler
+
+🤣
+
+ผมชอบเรียกว่า
+
+Business Layer
+ไม่รู้เรื่อง HTTP
+
+HTTP Layer
+ไม่รู้เรื่อง Business
+
+ErrorHandler
+เป็นคนเชื่อม
+
+และที่สำคัญมาก
+
+พออีก 2 เดือนคุณมี
+
+20 handlers
+50 services
+100 repos
+
+คุณยังมี
+
+Error Log = 1 จุด
+Error Response = 1 จุด
+
+ดูแลง่ายมาก
+
+ดังนั้นตอบตรง ๆ
+
+ทุกชั้น return err ไหลมาถึง error handler กลางจบเลย
+
+✅ ใช่ครับ
+
+และผมว่าจาก architecture ที่คุณกำลังทำอยู่
+
+context
+validator
+apperror
+response
+middleware
+
+ตัว ErrorHandler กลางนี่แหละ คือชิ้นส่วนที่ขาดอยู่พอดีครับ 🚀
+```
+
 
 # K Backend
 
