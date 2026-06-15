@@ -1,3 +1,33 @@
+```bash
+3. Handler ต้อง return err
+
+ถ้าอยากให้ error log กลางทำงานเต็ม ๆ handler ควรเป็นแบบนี้:
+
+items, err := h.service.Search(c.UserContext(), req)
+if err != nil {
+	return err
+}
+
+ไม่ใช่:
+
+if err != nil {
+	return response.Error(c, err)
+}
+
+เพราะถ้า handler เรียก response.Error เอง error จะไม่ลอยไปถึง Fiber ErrorHandler
+
+สรุปมาตรฐานใหม่:
+
+handler/service/repo
+return err ขึ้นมา
+
+Fiber ErrorHandler
+log error กลาง + response.Error
+
+อันนี้ product-grade แบบง่ายแล้วครับ.
+```
+
+
 # K Backend
 
 Backend service built with Go and Fiber.

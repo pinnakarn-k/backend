@@ -12,7 +12,10 @@ import (
 )
 
 func New(log *slog.Logger, redisClient *redis.Client) *fiber.App {
-	fiberApp := fiber.New()
+	// fiberApp := fiber.New()
+	fiberApp := fiber.New(fiber.Config{
+		ErrorHandler: middleware.ErrorHandler(log),
+	})
 
 	fiberApp.Use(cors.New(cors.Config{
 		AllowOrigins: "http://localhost:5173",
