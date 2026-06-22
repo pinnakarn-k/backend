@@ -2,7 +2,20 @@ package transaction
 
 import "backend/internal/pagination"
 
+type FileResult struct {
+	FileName    string
+	ContentType string
+	Bytes       []byte
+}
+
+type MailResult struct {
+	Success bool
+	Message string
+	RefNo   string
+}
+
 type SearchRequest struct {
+	AccountType  string `json:"accountType" validate:"required"`
 	CustomerCode string `json:"customer_code" validate:"required"`
 	AccountNo    string `json:"account_no" validate:"required"`
 	FromDate     string `json:"from_date" validate:"required"`
@@ -13,6 +26,8 @@ type SearchRequest struct {
 
 	Offset int `json:"offset"`
 	Limit  int `json:"limit"`
+
+	ExportType string `json:"export_type"`
 }
 
 type TransactionItem struct {

@@ -18,6 +18,56 @@ func NewHandler(service Service) *Handler {
 	}
 }
 
+func (h *Handler) SendEmail(c *fiber.Ctx) error {
+	var req SearchRequest
+
+	if err := c.BodyParser(&req); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid request body")
+	}
+
+	if err := validator.Validate(req); err != nil {
+		return response.Error(c, err)
+	}
+
+	result, err := h.service.SendEmail(
+		c.Context(),
+		req, // TODO
+	)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(result)
+}
+
+func (h *Handler) Download(c *fiber.Ctx) error {
+	var req SearchRequest
+
+	if err := c.BodyParser(&req); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid request body")
+	}
+
+	if err := validator.Validate(req); err != nil {
+		return response.Error(c, err)
+	}
+
+	file, err := h.service.Download(
+		c.Context(),
+		req, // TODO
+	)
+	if err != nil {
+		return err
+	}
+
+	c.Set("Content-Type", file.ContentType)
+	c.Set(
+		"Content-Disposition",
+		fmt.Sprintf(`attachment; filename="%s"`, file.FileName),
+	)
+
+	return c.Send(file.Bytes)
+}
+
 func (h *Handler) Search(c *fiber.Ctx) error {
 	var req SearchRequest
 
