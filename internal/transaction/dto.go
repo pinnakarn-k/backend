@@ -27,7 +27,8 @@ type SearchRequest struct {
 	Offset int `json:"offset"`
 	Limit  int `json:"limit"`
 
-	ExportType string `json:"export_type"`
+	IsExport   bool   `json:"isExport"`
+	ExportType string `json:"exportType"`
 }
 
 type TransactionItem struct {

@@ -25,6 +25,7 @@ func NewService(repository Repository) Service {
 func prepareExportRequest(req SearchRequest) SearchRequest {
 	req.Offset = 0
 	req.Limit = 0
+	req.IsExport = true
 	return req
 }
 
