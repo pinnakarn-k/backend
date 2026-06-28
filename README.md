@@ -1,3 +1,84 @@
+```repo
+// Query A — ดึงทั้งตาราง
+type PositionRow struct {
+    RowNo   int
+    DataDt  time.Time
+    ShrCd   string
+    RefType string
+    Vol     int
+    Price   decimal.Decimal
+    Amt     decimal.Decimal
+}
+
+// Query B — JOIN กับอีก table ได้ field เพิ่ม
+type PositionWithNameRow struct {
+    RowNo    int
+    ShrCd    string
+    ShrName  string  // มาจากอีก table
+    RefType  string
+    Amt      decimal.Decimal
+}
+
+// Query C — ดึงแค่บาง column สำหรับ summary
+type PositionSummaryRow struct {
+    ShrCd   string
+    TotalAmt decimal.Decimal
+}
+```
+
+```service
+// Response Struct
+type PositionResponse struct {
+    RowNo   int    `json:"row_no"`
+    DataDt  string `json:"data_dt"`
+    ShrCd   string `json:"shr_cd"`
+    RefType string `json:"ref_type"`
+    Vol     int    `json:"vol"`
+    Price   string `json:"price"`
+    Amt     string `json:"amt"`
+}
+
+// แปลง RefType
+func toRefTypeLabel(refType string) string {
+    switch refType {
+    case "L":
+        return "Long"
+    case "S":
+        return "Short"
+    default:
+        return refType // fallback ส่งค่าเดิมถ้าไม่รู้จัก
+    }
+}
+
+// Mapper
+func toPositionResponse(p PositionRow) PositionResponse {
+    return PositionResponse{
+        RowNo:   p.RowNo,
+        DataDt:  p.DataDt.Format("2006-01-02"),
+        ShrCd:   p.ShrCd,
+        RefType: toRefTypeLabel(p.RefType), // แปลงตรงนี้
+        Vol:     p.Vol,
+        Price:   p.Price.String(),
+        Amt:     p.Amt.String(),
+    }
+}
+
+// Service
+func (s *positionService) GetAll() ([]PositionResponse, error) {
+    rows, err := s.repo.FindAll()
+    if err != nil {
+        return nil, err
+    }
+
+    result := make([]PositionResponse, len(rows))
+    for i, row := range rows {
+        result[i] = toPositionResponse(row)
+    }
+
+    return result, nil
+}
+```
+
 ```bash
 3. Handler ต้อง return err
 
