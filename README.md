@@ -1,3 +1,11 @@
+```summary
+งั้นผมสรุปนะ 
+1.repo คืน struct ตาม ผลลัพธ์ของ sql (ยังไม่ต้องมี tag json)
+2.service ก็มาวนลูป และเก็บใน struct ของตัวเอง อันนี้คือส่วนที่จะส่งไปให้ f (ติด tag json)
+
+DB → repo.FindAll() → []PositionRow → service แปลง → []PositionResponse → Handler → JSON
+```
+
 ```repo
 // Query A — ดึงทั้งตาราง
 type PositionRow struct {
@@ -831,4 +839,90 @@ internal/
 ├── response/
 ├── validator/
 └── ...
+```
+
+```text
+package main
+
+import (
+	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
+	"encoding/base64"
+	"fmt"
+	"time"
+)
+
+func main() {
+	requester := "CUSTOMER_CODE_HERE" // requester = customer code
+	application := "XXXXX"            // TODO: ขอค่าจริงจากเจ้าของ API
+	key := ""                         // TODO: ใส่ UAT key จริง
+	contentType := "application/json"
+
+	timestamp := time.Now().Format("20060102150405") // yyyyMMddHHmmss
+	iv := "KS" + timestamp                           // 16 bytes
+
+	printHeaderSet("1) Standard Base64", base64.StdEncoding, timestamp, requester, application, key, iv, contentType)
+	printHeaderSet("2) URL Safe Base64 with padding", base64.URLEncoding, timestamp, requester, application, key, iv, contentType)
+	printHeaderSet("3) URL Safe Base64 without padding", base64.RawURLEncoding, timestamp, requester, application, key, iv, contentType)
+
+	fmt.Println()
+	fmt.Println("=== Debug ===")
+	fmt.Println("timestamp:", timestamp)
+	fmt.Println("iv:", iv)
+	fmt.Println("iv length:", len(iv))
+	fmt.Println("key length:", len(key))
+}
+
+func printHeaderSet(
+	title string,
+	encoder *base64.Encoding,
+	timestamp, requester, application, key, iv, contentType string,
+) {
+	pretoken := encoder.EncodeToString([]byte(timestamp))
+
+	token, err := encryptAESCBCPKCS5(timestamp, key, iv, encoder)
+	if err != nil {
+		fmt.Println("===", title, "===")
+		fmt.Println("ERROR:", err)
+		fmt.Println()
+		return
+	}
+
+	fmt.Println("===", title, "===")
+	fmt.Println("requester:", requester)
+	fmt.Println("application:", application)
+	fmt.Println("pretoken:", pretoken)
+	fmt.Println("token:", token)
+	fmt.Println("Content-Type:", contentType)
+	fmt.Println()
+}
+
+func encryptAESCBCPKCS5(
+	plainText string,
+	key string,
+	iv string,
+	encoder *base64.Encoding,
+) (string, error) {
+	block, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		return "", err
+	}
+
+	plainBytes := []byte(plainText)
+	plainBytes = pkcs5Padding(plainBytes, aes.BlockSize)
+
+	cipherText := make([]byte, len(plainBytes))
+
+	mode := cipher.NewCBCEncrypter(block, []byte(iv))
+	mode.CryptBlocks(cipherText, plainBytes)
+
+	return encoder.EncodeToString(cipherText), nil
+}
+
+func pkcs5Padding(data []byte, blockSize int) []byte {
+	padding := blockSize - len(data)%blockSize
+	padText := bytes.Repeat([]byte{byte(padding)}, padding)
+	return append(data, padText...)
+}
 ```
