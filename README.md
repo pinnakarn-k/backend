@@ -1,4 +1,32 @@
 ```summary
+// ===== Repo layer: map ตรงตาม column ใน DB =====
+type ProductRepo struct {
+    ID          int              `db:"id"`
+    Name        string           `db:"name"`
+    Price       *decimal.Decimal `db:"price"`
+    Cost        *decimal.Decimal `db:"cost"`
+    CreatedBy   string           `db:"created_by"`
+    UpdatedAt   time.Time        `db:"updated_at"`
+    DeletedFlag bool             `db:"deleted_flag"`
+    // ... อีก 10-20 field ตาม table
+}
+
+// ===== Service/Response layer: เอาแค่ที่ต้องพ่นออก =====
+type ProductResponse struct {
+    ID    int    `json:"id"`
+    Name  string `json:"name"`
+    Price string `json:"price"` // format แล้ว เช่น "1,234.56"
+}
+
+func ToProductResponse(r *ProductRepo) *ProductResponse {
+    return &ProductResponse{
+        ID:    r.ID,
+        Name:  r.Name,
+        Price: FormatPriceWithComma(r.Price),
+    }
+}
+
+
 งั้นผมสรุปนะ 
 1.repo คืน struct ตาม ผลลัพธ์ของ sql (ยังไม่ต้องมี tag json)
 2.service ก็มาวนลูป และเก็บใน struct ของตัวเอง อันนี้คือส่วนที่จะส่งไปให้ f (ติด tag json)
