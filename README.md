@@ -1,4 +1,49 @@
 ```summary
+
+// ===== Repo layer (เหมือนเดิม ไม่ต้องแก้) =====
+type ProductRepo struct {
+    ID          int              `db:"id"`
+    Name        string           `db:"name"`
+    Price       *decimal.Decimal `db:"price"`
+    Cost        *decimal.Decimal `db:"cost"`
+    CreatedBy   string           `db:"created_by"`
+    UpdatedAt   time.Time        `db:"updated_at"`
+    DeletedFlag bool             `db:"deleted_flag"`
+}
+
+// ===== 1. View/Web response =====
+type ProductResponse struct {
+    ID    int    `json:"id"`
+    Name  string `json:"name"`
+    Price string `json:"price"` // "1,234.56"
+}
+
+func ToProductResponse(r *ProductRepo) *ProductResponse {
+    return &ProductResponse{
+        ID:    r.ID,
+        Name:  r.Name,
+        Price: FormatPriceWithComma(r.Price),
+    }
+}
+
+// ===== 2. Export (ไม่ต้องมี struct ใหม่ ใช้ [][]any ตรงๆ) =====
+func ToExportRow(r *ProductRepo) []any {
+    return []any{
+        r.ID,
+        r.Name,
+        FormatPriceWithComma(r.Price), // เรียก func เดิม ไม่เขียนซ้ำ
+    }
+}
+
+func ToExportRows(list []*ProductRepo) [][]any {
+    rows := make([][]any, 0, len(list))
+    for _, r := range list {
+        rows = append(rows, ToExportRow(r))
+    }
+    return rows
+}
+
+
 // ===== Repo layer: map ตรงตาม column ใน DB =====
 type ProductRepo struct {
     ID          int              `db:"id"`
