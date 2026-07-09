@@ -1,4 +1,66 @@
 ```summary
+// 1. DB Layer — ยังใช้ Null* เหมือนเดิม ปลอดภัยตอน scan
+type CustomerDB struct {
+	ID     int64
+	Name   sql.NullString
+	Amount decimal.NullDecimal
+}
+
+// 2. Response Layer — ใช้ pointer เพื่อให้ JSON ออก null ได้จริง
+type CustomerResponse struct {
+	ID     int64   `json:"id"`
+	Name   *string `json:"name"`   // null ได้ หรือ "" ก็ได้ แล้วแต่กฎ
+	Amount *string `json:"amount"`
+}
+
+// 3. Mapper — จุดเดียวที่ตัดสินใจว่า null ไปเลย หรือ "" 
+func mapCustomer(c CustomerDB) CustomerResponse {
+	var name *string
+	if c.Name.Valid {
+		name = &c.Name.String
+	}
+	// ถ้ากฎบอกว่า Name ต้องเป็น "" เวลา null (ไม่ใช่ json null) ก็ทำแบบนี้แทน:
+	// name := ""
+	// if c.Name.Valid { name = c.Name.String }
+	// (แล้ว field เป็น string ธรรมดา ไม่ต้อง pointer)
+
+	var amount *string
+	if c.Amount.Valid {
+		formatted := c.Amount.Decimal.Round(2).StringFixed(2)
+		amount = &formatted
+	}
+
+	return CustomerResponse{
+		ID:     c.ID,
+		Name:   name,
+		Amount: amount,
+	}
+}
+
+func toNullableString(ns sql.NullString) *string {
+	if !ns.Valid {
+		return nil
+	}
+	return &ns.String
+}
+
+func toNullableDecimalString(nd decimal.NullDecimal) *string {
+	if !nd.Valid {
+		return nil
+	}
+	s := nd.Decimal.Round(2).StringFixed(2)
+	return &s
+}
+
+func mapCustomer(c CustomerDB) CustomerResponse {
+	return CustomerResponse{
+		ID:     c.ID,
+		Name:   toNullableString(c.Name),
+		Amount: toNullableDecimalString(c.Amount),
+	}
+}
+
+----------------------
 package main
 
 import (
