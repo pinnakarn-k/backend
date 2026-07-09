@@ -1,4 +1,63 @@
 ```summary
+DB Layer          →    Service Layer         →    Response Layer
+(Scan)                 (Business Logic)            (JSON Output)
+
+sql.NullString    →    loop + ตัดสินใจ        →    *string (null ได้)
+decimal.NullDecimal →  format/round/etc      →    *string (null ได้)
+
+พูดเป็นคำเดียวแบบเพื่อน:
+
+Scan → ลงตาม type จริงของมันที่ DB รองรับ NULL ได้ถูกต้อง (sql.NullString, decimal.NullDecimal, sql.NullInt64, ...) เพื่อความปลอดภัยตอนอ่านข้อมูล ไม่ panic ไม่ error แปลกๆ
+Service/Mapper → loop ผ่านแต่ละ record แล้ว "ตัดสินใจ" ว่าจะแปลงเป็นอะไร (ส่วนใหญ่คือ *string เพื่อให้ json ออก null ได้ตามที่คุยกัน หรือ format ทศนิยม/วันที่ตามต้องการ)
+Response struct → เป็นหน้าตาสุดท้ายที่ frontend เห็น สะอาด ไม่มี Null* โผล่มาให้งง
+
+// DB Layer
+type CustomerDB struct {
+    ID     int64
+    Name   sql.NullString
+    Amount decimal.NullDecimal
+}
+
+// Response Layer
+type CustomerResponse struct {
+    ID     int64   `json:"id"`
+    Name   *string `json:"name"`
+    Amount *string `json:"amount"`
+}
+
+// Service Layer - loop + map
+func (s *Service) GetCustomers() ([]CustomerResponse, error) {
+    dbCustomers, err := s.repo.FindCustomers()
+    if err != nil {
+        return nil, err
+    }
+
+    result := make([]CustomerResponse, 0, len(dbCustomers))
+    for _, c := range dbCustomers {
+        var name *string
+        if c.Name.Valid {
+            name = &c.Name.String
+        }
+
+        var amount *string
+        if c.Amount.Valid {
+            v := c.Amount.Decimal.Round(2).StringFixed(2)
+            amount = &v
+        }
+
+        result = append(result, CustomerResponse{
+            ID:     c.ID,
+            Name:   name,
+            Amount: amount,
+        })
+    }
+
+    return result, nil
+}
+
+--------------
+
+
 // 1. DB Layer — ยังใช้ Null* เหมือนเดิม ปลอดภัยตอน scan
 type CustomerDB struct {
 	ID     int64
