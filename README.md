@@ -1,4 +1,82 @@
 ```summary
+package main
+
+import (
+	"fmt"
+	"github.com/shopspring/decimal"
+)
+
+// 1. DB Layer - โครงสร้างตรงจาก DB
+type CustomerDB struct {
+	ID     int64
+	Name   sql.NullString
+	Amount decimal.NullDecimal
+}
+
+// 2. Response Layer - โครงสร้างที่ service คืนออกไป (ใช้งานง่าย ไม่มี null ให้ปวดหัว)
+type CustomerResponse struct {
+	ID     int64  `json:"id"`
+	Name   string `json:"name"`
+	Amount string `json:"amount"` // ทศนิยม 2 ตำแหน่งพร้อมส่ง
+}
+
+// 3. Mapper - แปลงทีละตัว จุดเดียวจบ
+func mapCustomer(c CustomerDB) CustomerResponse {
+	name := ""
+	if c.Name.Valid {
+		name = c.Name.String
+	}
+
+	amount := "0.00"
+	if c.Amount.Valid {
+		amount = c.Amount.Decimal.Round(2).StringFixed(2)
+	}
+
+	return CustomerResponse{
+		ID:     c.ID,
+		Name:   name,
+		Amount: amount,
+	}
+}
+
+// Service layer - loop สั้นและอ่านง่าย เพราะ logic เช็ค null ไปอยู่ที่ mapper แล้ว
+func (s *Service) GetCustomers() ([]CustomerResponse, error) {
+	dbCustomers, err := s.repo.FindCustomers() // return []CustomerDB
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]CustomerResponse, 0, len(dbCustomers))
+	for _, c := range dbCustomers {
+		result = append(result, mapCustomer(c))
+	}
+
+	return result, nil
+}
+
+func decimalOrDefault(nd decimal.NullDecimal, def string) string {
+	if !nd.Valid {
+		return def
+	}
+	return nd.Decimal.Round(2).StringFixed(2)
+}
+
+func stringOrDefault(ns sql.NullString, def string) string {
+	if !ns.Valid {
+		return def
+	}
+	return ns.String
+}
+
+
+func mapCustomer(c CustomerDB) CustomerResponse {
+	return CustomerResponse{
+		ID:     c.ID,
+		Name:   stringOrDefault(c.Name, ""),
+		Amount: decimalOrDefault(c.Amount, "0.00"),
+	}
+}
+
 
 // ===== Repo layer (เหมือนเดิม ไม่ต้องแก้) =====
 type ProductRepo struct {
